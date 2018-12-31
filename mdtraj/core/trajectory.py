@@ -1328,7 +1328,7 @@ class Trajectory(object):
                     cell_angles=self.unitcell_angles)
             f.topology = self.topology
 
-    def save_lammpstrj(self, filename, force_overwrite=True):
+    def save_lammpstrj(self, filename, force_overwrite=True, zero_mins=True):
         """Save trajectory to LAMMPS custom dump format
 
         Parameters
@@ -1341,7 +1341,7 @@ class Trajectory(object):
         with LAMMPSTrajectoryFile(filename, 'w', force_overwrite=force_overwrite) as f:
             f.write(xyz=in_units_of(self.xyz, Trajectory._distance_unit, f.distance_unit),
                     cell_lengths=in_units_of(self.unitcell_lengths, Trajectory._distance_unit, f.distance_unit),
-                    cell_angles=self.unitcell_angles)
+                    cell_angles=self.unitcell_angles, zero_mins=True)
 
     def save_xyz(self, filename, force_overwrite=True):
         """Save trajectory to .xyz format.

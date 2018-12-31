@@ -472,7 +472,7 @@ class LAMMPSTrajectoryFile(object):
             self._fh.write('{0} {1} {2}\n'.format(ylo_bound, yhi_bound, xz))
             self._fh.write('{0} {1} {2}\n'.format(zlo_bound, zhi_bound, yz))
 
-    def write(self, xyz, cell_lengths, cell_angles=None, types=None, unit_set='real'):
+    def write(self, xyz, cell_lengths, cell_angles=None, types=None, unit_set='real', zero_mins=True):
         """Write one or more frames of data to a lammpstrj file.
 
         Parameters
@@ -528,7 +528,11 @@ class LAMMPSTrajectoryFile(object):
             self._fh.write('{0}\n'.format(i))  # TODO: Write actual time if known.
             self._fh.write('ITEM: NUMBER OF ATOMS\n')
             self._fh.write('{0}\n'.format(xyz.shape[1]))
-            self.write_box(cell_lengths[i], cell_angles[i], xyz[i].min(axis=0))
+            if zero_mins:
+                mins = np.zeros(xyz.shape[-1])
+            else:
+                mins = xyz[i].min(axis=0)
+            self.write_box(cell_lengths[i], cell_angles[i], mins)
             # --- end header ---
 
             # --- begin body ---
