@@ -472,7 +472,7 @@ class LAMMPSTrajectoryFile(object):
             self._fh.write('{0} {1} {2}\n'.format(ylo_bound, yhi_bound, xz))
             self._fh.write('{0} {1} {2}\n'.format(zlo_bound, zhi_bound, yz))
 
-    def write(self, xyz, cell_lengths, cell_angles=None, types=None, unit_set='real', zero_mins=True):
+    def write(self, xyz, cell_lengths, cell_angles=None, mol=None, types=None, unit_set='real', zero_mins=True):
         """Write one or more frames of data to a lammpstrj file.
 
         Parameters
@@ -509,10 +509,16 @@ class LAMMPSTrajectoryFile(object):
         cell_angles = ensure_type(cell_angles, np.float32, 2, 'cell_angles',
                 can_be_none=False, shape=(len(xyz), 3), warn_on_cast=False,
                 add_newaxis_on_deficient_ndim=True)
-        if not types:
+        if mol is None:
+            # Make all particles part of same molecule.
+            mol = np.ones(shape=(xyz.shape[1]))
+        mol = ensure_type(mol, np.int, 1, 'mol', can_be_none=False,
+              shape=(xyz.shape[1], ), warn_on_cast=False,
+              add_newaxis_on_deficient_ndim=False)
+        if types is None:
             # Make all particles the same type.
             types = np.ones(shape=(xyz.shape[1]))
-        types = ensure_type(types, np.int, 1, 'types', can_be_none=True,
+        types = ensure_type(types, np.int, 1, 'types', can_be_none=False,
                 shape=(xyz.shape[1], ), warn_on_cast=False,
                 add_newaxis_on_deficient_ndim=False)
 
@@ -536,10 +542,10 @@ class LAMMPSTrajectoryFile(object):
             # --- end header ---
 
             # --- begin body ---
-            self._fh.write('ITEM: ATOMS id type xu yu zu\n')
+            self._fh.write('ITEM: ATOMS id mol type x y z\n')
             for j, coord in enumerate(xyz[i]):
-                self._fh.write('{0:d} {1:d} {2:8.3f} {3:8.3f} {4:8.3f}\n'.format(
-                    j+1, types[j], coord[0], coord[1], coord[2]))
+                self._fh.write('{0:d} {1:d} {2:d} {3:8.3f} {4:8.3f} {5:8.3f}\n'.format(
+                    j+1, mol[j], types[j], coord[0], coord[1], coord[2]))
             # --- end body ---
 
     def seek(self, offset, whence=0):

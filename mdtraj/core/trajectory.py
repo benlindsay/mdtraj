@@ -1338,10 +1338,14 @@ class Trajectory(object):
         force_overwrite : bool, default=True
             Overwrite anything that exists at filename, if its already there
         """
+        atoms, _ = self.topology.to_dataframe()
+        cats = atoms['element'].astype('category').cat.categories
+        types = atoms['element'].astype('category').cat.rename_categories(np.arange(len(cats))).values
+        mol = atoms['resSeq'].values
         with LAMMPSTrajectoryFile(filename, 'w', force_overwrite=force_overwrite) as f:
             f.write(xyz=in_units_of(self.xyz, Trajectory._distance_unit, f.distance_unit),
                     cell_lengths=in_units_of(self.unitcell_lengths, Trajectory._distance_unit, f.distance_unit),
-                    cell_angles=self.unitcell_angles, zero_mins=True)
+                    cell_angles=self.unitcell_angles, mol=mol, types=types, zero_mins=True)
 
     def save_xyz(self, filename, force_overwrite=True):
         """Save trajectory to .xyz format.
